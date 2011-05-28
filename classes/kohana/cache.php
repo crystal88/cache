@@ -120,14 +120,14 @@ abstract class Kohana_Cache {
 			return Cache::$instances[$group];
 		}
 
-		$config = Kohana::config('cache');
+		$config = Config::inst()->get('cache');
 
-		if ( ! $config->offsetExists($group))
+		if ( ! isset($config[$group]))
 		{
 			throw new Kohana_Cache_Exception('Failed to load Kohana Cache group: :group', array(':group' => $group));
 		}
 
-		$config = $config->get($group);
+		$config = $config[$group];
 
 		// Create a new cache type instance
 		$cache_class = 'Cache_'.ucfirst($config['driver']);
@@ -166,6 +166,9 @@ abstract class Kohana_Cache {
                         $longest_matching_prefix = $prefix;
                 }
             }
+            if (NULL === $longest_matching_prefix)
+                throw new Log_Exception("No cache adapter found for '$class'");
+            self::$_class_adapters[$class] = self::$_adapter_cfg[$longest_matching_prefix];
         }
         return self::instance(self::$_class_adapters[$class]);
     }
