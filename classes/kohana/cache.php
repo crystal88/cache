@@ -137,6 +137,39 @@ abstract class Kohana_Cache {
 		return Cache::$instances[$group];
 	}
 
+    protected static $_class_adapters = array();
+
+    protected static $_adapter_cfg;
+
+    /**
+     *
+     * @param mixed $class a classname or an object
+     * @return Cache
+     */
+    public static function for_class($class) {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+        if ( ! isset(self::$_class_adapters[$class])) {
+            if (NULL === self::$_adapter_cfg) {
+                self::$_adapter_cfg = Config::inst()->get('cache.adapters');
+            }
+            $classname_len = strlen($class);
+            $longest_matching_prefix_len = NULL;
+            $longest_matching_prefix = NULL;
+            foreach (self::$_adapter_cfg as $prefix => $adapter) {
+                $prefix_len = strlen($prefix);
+                $classname_pref = substr($class, 0, $prefix_len);
+                if ($classname_pref == $prefix
+                        && $prefix_len >= $longest_matching_prefix_len) {
+                        $longest_matching_prefix_len = $prefix_len;
+                        $longest_matching_prefix = $prefix;
+                }
+            }
+        }
+        return self::instance(self::$_class_adapters[$class]);
+    }
+
 	/**
 	 * @var  Config
 	 */
